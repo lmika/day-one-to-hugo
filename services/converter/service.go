@@ -17,7 +17,7 @@ func New(hugoDir *hugodir.Provider) *Service {
 }
 
 func (s *Service) WriteToHugo(site models.Site, journal models.Journal) error {
-	for _, entry := range journal.Entries[:1] {
+	for _, entry := range journal.Entries {
 		p, err := s.ConvertToPost(entry)
 		if err != nil {
 			return fault.Wrap(err)

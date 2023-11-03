@@ -30,6 +30,7 @@ func (s *Service) ConvertToPost(entry models.Entry) (post models.Post, err error
 		return models.Post{}, err
 	}
 	post.Content = outBfr.String()
+	post.Date = entry.Date
 
 	return post, nil
 }

@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type Site struct {
 	Dir         string
 	PostBaseDir string
@@ -11,6 +13,7 @@ type HugoContent struct {
 }
 
 type Post struct {
+	Date    time.Time
 	Title   string
 	Content string
 }
