@@ -3,6 +3,8 @@ github.com/Southclaws/fault v0.7.0/go.mod h1:VUVkAWutC59SL16s6FTqf3I6I2z77RmnaW5
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/lmika/gopkgs v0.0.0-20231103235003-fdc93f8f5908 h1:KpYfezFiiSBM/eDC5LF6UHigDOgsee1jWqHddFwUtFM=
+github.com/lmika/gopkgs v0.0.0-20231103235003-fdc93f8f5908/go.mod h1:zHQvhjGXRro/Xp2C9dbC+ZUpE0gL4GYW75x1lk7hwzI=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

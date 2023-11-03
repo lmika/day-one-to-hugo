@@ -2,7 +2,9 @@ package converter
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/lmika/day-one-to-hugo/models"
+	"github.com/lmika/gopkgs/fp/slices"
 	markdown "github.com/teekennedy/goldmark-markdown"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -22,6 +24,10 @@ func (s *Service) ConvertToPost(entry models.Entry) (post models.Post, err error
 	if docHead.Kind() == ast.KindHeading {
 		post.Title = string(docHead.Text(textSrc))
 		n.RemoveChild(n, docHead)
+	}
+
+	if err := ast.Walk(n, s.imageURLWalker(entry)); err != nil {
+		return models.Post{}, err
 	}
 
 	outBfr := bytes.Buffer{}
@@ -52,4 +58,34 @@ func (s *Service) replaceBackslashes(str string) string {
 	}
 
 	return outStr.String()
+}
+
+func (s *Service) imageURLWalker(entry models.Entry) ast.Walker {
+	const dayOnePrefix = "dayone-moment://"
+
+	return func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		if n.Kind() != ast.KindImage {
+			return ast.WalkContinue, nil
+		}
+
+		imgNode := n.(*ast.Image)
+		dest := string(imgNode.Destination)
+
+		if !strings.HasPrefix(dest, dayOnePrefix) {
+			return ast.WalkContinue, nil
+		}
+
+		momentID := strings.TrimPrefix(dest, dayOnePrefix)
+
+		photo, found := slices.FindWhere(entry.Photos, func(t models.Moment) bool {
+			return t.ID == momentID
+		})
+		if !found {
+			return ast.WalkContinue, nil
+		}
+
+		imgNode.Destination = []byte(fmt.Sprintf("/images/%v.%v", photo.MD5, photo.Type))
+
+		return ast.WalkContinue, nil
+	}
 }

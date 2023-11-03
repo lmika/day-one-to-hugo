@@ -21,11 +21,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("entries = %v", len(journal.Entries))
-	for _, e := range journal.Entries {
-		log.Printf("%v", e.Text)
-	}
-
 	svc := converter.New(hugodir.New())
 	if err := svc.WriteToHugo(site, journal); err != nil {
 		log.Fatal(err)

@@ -19,6 +19,8 @@ func New() *Provider {
 	return &Provider{}
 }
 
+func (p *Provider) AddPhotos(site models.Site)
+
 func (p *Provider) AddPost(site models.Site, post models.Post) error {
 	postFilename := filepath.Join(site.Dir, "content", site.PostBaseDir, p.postFilename(post))
 
