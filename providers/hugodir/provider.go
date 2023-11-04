@@ -62,6 +62,15 @@ func (p *Provider) generatePostBody(w io.Writer, post models.Post) error {
 		fmt.Fprintf(w, "title: %v\n", post.Title)
 	}
 	fmt.Fprintln(w, "trip: ra-v-missions")
+	fmt.Fprintln(w, "location:")
+	fmt.Fprintf(w, "  placeName: %v\n", post.Location.PlaceName)
+	fmt.Fprintf(w, "  locality: %v\n", post.Location.Locality)
+	fmt.Fprintf(w, "  country: %v\n", post.Location.Country)
+	fmt.Fprintf(w, "  lat: %v\n", post.Location.Lat)
+	fmt.Fprintf(w, "  long: %v\n", post.Location.Long)
+	fmt.Fprintln(w, "weather:")
+	fmt.Fprintf(w, "  code: %v\n", post.Weather.Code)
+	fmt.Fprintf(w, "  temp: %v\n", post.Weather.Temp)
 	fmt.Fprintln(w, "---")
 
 	fmt.Fprint(w, post.Content)

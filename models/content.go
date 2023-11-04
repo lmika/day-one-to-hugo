@@ -13,9 +13,11 @@ type HugoContent struct {
 }
 
 type Post struct {
-	Date    time.Time
-	Title   string
-	Content string
+	Date     time.Time
+	Title    string
+	Content  string
+	Location Location
+	Weather  Weather
 }
 
 type Media struct {

@@ -41,6 +41,10 @@ func TestService_WriteToHugo(t *testing.T) {
 			source:          "![My image](dayone-moment://91E303B8B3FB4345AE028CE8E0752935)",
 			expectedContent: "![My image](https://picsum.photos/300/200)\n",
 		},
+		{
+			description:     "convert image url",
+			expectedContent: "![My image](https://picsum.photos/300/200)\n",
+		},
 	}
 
 	for _, scenario := range scenarios {

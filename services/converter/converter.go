@@ -39,6 +39,8 @@ func (s *Service) ConvertToPost(entry models.Entry) (post models.Post, err error
 	}
 	post.Content = s.figureMaker(outBfr.String())
 	post.Date = entry.Date
+	post.Location = entry.Location
+	post.Weather = entry.Weather
 
 	return post, nil
 }
@@ -88,13 +90,17 @@ func (s *Service) figureMaker(md string) string {
 			seen = pendingSeen{}
 		case seen.mode == 1 && strings.TrimSpace(text) == "":
 			seen.mode = 2
-		case seen.mode == 0 && imgLine.MatchString(text):
+		case imgLine.MatchString(text):
+			if seen.imgURL != "" {
+				bts.WriteString(fmt.Sprintf(`<img src="%v">`, seen.imgURL))
+				bts.WriteString("\n\n")
+			}
+
 			seen.imgURL = imgLine.FindStringSubmatch(text)[1]
 			seen.mode = 1
 		default:
 			if seen.imgURL != "" {
-				bts.WriteString(fmt.Sprintf(`<img src="%v">`,
-					seen.imgURL))
+				bts.WriteString(fmt.Sprintf(`<img src="%v">`, seen.imgURL))
 				bts.WriteString("\n\n")
 			}
 			seen = pendingSeen{}
@@ -104,8 +110,7 @@ func (s *Service) figureMaker(md string) string {
 	}
 
 	if seen.imgURL != "" {
-		bts.WriteString(fmt.Sprintf(`<img src="%v">`,
-			seen.imgURL))
+		bts.WriteString(fmt.Sprintf(`<img src="%v">`, seen.imgURL))
 		bts.WriteString("\n\n")
 	}
 
