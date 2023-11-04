@@ -88,7 +88,7 @@ func (s *Service) figureMaker(md string) string {
 			seen = pendingSeen{}
 		case seen.mode == 1 && strings.TrimSpace(text) == "":
 			seen.mode = 2
-		case imgLine.MatchString(text):
+		case seen.mode == 0 && imgLine.MatchString(text):
 			seen.imgURL = imgLine.FindStringSubmatch(text)[1]
 			seen.mode = 1
 		default:
@@ -102,6 +102,13 @@ func (s *Service) figureMaker(md string) string {
 			bts.WriteString("\n")
 		}
 	}
+
+	if seen.imgURL != "" {
+		bts.WriteString(fmt.Sprintf(`<img src="%v">`,
+			seen.imgURL))
+		bts.WriteString("\n\n")
+	}
+
 	return bts.String()
 }
 

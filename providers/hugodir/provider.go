@@ -61,6 +61,7 @@ func (p *Provider) generatePostBody(w io.Writer, post models.Post) error {
 	if post.Title != "" {
 		fmt.Fprintf(w, "title: %v\n", post.Title)
 	}
+	fmt.Fprintln(w, "trip: ra-v-missions")
 	fmt.Fprintln(w, "---")
 
 	fmt.Fprint(w, post.Content)

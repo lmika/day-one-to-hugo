@@ -19,13 +19,13 @@ func (s *Service) WriteToHugo(site models.Site, journalPack models.JournalPack) 
 	if err := s.writeJournalToHugo(site, journalPack.Journal); err != nil {
 		return fault.Wrap(err)
 	}
-
-	for _, photo := range journalPack.Photos {
-		if err := s.hugoDir.AddPhoto(site, photo); err != nil {
-			return fault.Wrap(err)
+	/*
+		for _, photo := range journalPack.Photos {
+			if err := s.hugoDir.AddPhoto(site, photo); err != nil {
+				return fault.Wrap(err)
+			}
 		}
-	}
-
+	*/
 	return nil
 }
 

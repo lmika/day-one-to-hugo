@@ -9,10 +9,10 @@ import (
 )
 
 func main() {
-	de := providers.DirExport("/Users/leonmika/Documents/10-31-2023_9-13-pm")
+	de := providers.DirExport("/Users/leonmika/Documents/11-04-2023_9-44-pm")
 
 	site := models.Site{
-		Dir:         "/Users/leonmika/tmp/untraveller-web-v2",
+		Dir:         "/Users/leonmika/Developer/Websites/untraveller-web-v2",
 		PostBaseDir: "posts",
 	}
 
