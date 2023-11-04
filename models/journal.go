@@ -2,6 +2,11 @@ package models
 
 import "time"
 
+type JournalPack struct {
+	Journal Journal
+	Photos  []Media
+}
+
 type Journal struct {
 	Entries []Entry `json:"entries"`
 }

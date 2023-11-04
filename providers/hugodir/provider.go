@@ -19,7 +19,19 @@ func New() *Provider {
 	return &Provider{}
 }
 
-func (p *Provider) AddPhotos(site models.Site)
+func (p *Provider) AddPhoto(site models.Site, media models.Media) error {
+	bts, err := os.ReadFile(media.Filename)
+	if err != nil {
+		return fault.Wrap(err)
+	}
+	
+	targetFilename := filepath.Join(site.Dir, "static", "images", filepath.Base(media.Filename))
+	if err := p.prepareBaseDir(targetFilename); err != nil {
+		return fault.Wrap(err)
+	}
+
+	return os.WriteFile(targetFilename, bts, 0644)
+}
 
 func (p *Provider) AddPost(site models.Site, post models.Post) error {
 	postFilename := filepath.Join(site.Dir, "content", site.PostBaseDir, p.postFilename(post))

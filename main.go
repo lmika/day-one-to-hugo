@@ -16,13 +16,13 @@ func main() {
 		PostBaseDir: "post",
 	}
 
-	journal, err := de.LoadJournal()
+	journalPack, err := de.LoadJournalPack()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	svc := converter.New(hugodir.New())
-	if err := svc.WriteToHugo(site, journal); err != nil {
+	if err := svc.WriteToHugo(site, journalPack); err != nil {
 		log.Fatal(err)
 	}
 }
