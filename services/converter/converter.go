@@ -1,6 +1,7 @@
 package converter
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/lmika/day-one-to-hugo/models"
@@ -9,6 +10,7 @@ import (
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
+	"regexp"
 	"strings"
 )
 
@@ -35,7 +37,7 @@ func (s *Service) ConvertToPost(entry models.Entry) (post models.Post, err error
 	if err := mdRenderer.Render(&outBfr, textSrc, n); err != nil {
 		return models.Post{}, err
 	}
-	post.Content = outBfr.String()
+	post.Content = s.figureMaker(outBfr.String())
 	post.Date = entry.Date
 
 	return post, nil
@@ -58,6 +60,49 @@ func (s *Service) replaceBackslashes(str string) string {
 	}
 
 	return outStr.String()
+}
+
+func (s *Service) figureMaker(md string) string {
+	var (
+		imgLine     = regexp.MustCompile(`^!\[]\((.*)\)`)
+		captionLine = regexp.MustCompile(`^[*]([^*]+)[*]`)
+	)
+
+	type pendingSeen struct {
+		imgURL string
+		mode   int
+	}
+
+	var bts bytes.Buffer
+	seen := pendingSeen{}
+	scnr := bufio.NewScanner(strings.NewReader(md))
+
+	for scnr.Scan() {
+		text := scnr.Text()
+		switch {
+		case seen.mode == 2 && captionLine.MatchString(text):
+			caption := captionLine.FindStringSubmatch(text)[1]
+			bts.WriteString(fmt.Sprintf(`<figure><img src="%v"><figcaption>%v</figcaption></figure>`,
+				seen.imgURL, caption))
+			bts.WriteString("\n\n")
+			seen = pendingSeen{}
+		case seen.mode == 1 && strings.TrimSpace(text) == "":
+			seen.mode = 2
+		case imgLine.MatchString(text):
+			seen.imgURL = imgLine.FindStringSubmatch(text)[1]
+			seen.mode = 1
+		default:
+			if seen.imgURL != "" {
+				bts.WriteString(fmt.Sprintf(`<img src="%v">`,
+					seen.imgURL))
+				bts.WriteString("\n\n")
+			}
+			seen = pendingSeen{}
+			bts.WriteString(text)
+			bts.WriteString("\n")
+		}
+	}
+	return bts.String()
 }
 
 func (s *Service) imageURLWalker(entry models.Entry) ast.Walker {
