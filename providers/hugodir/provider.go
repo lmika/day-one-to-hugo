@@ -3,6 +3,7 @@ package hugodir
 import (
 	"fmt"
 	"github.com/Southclaws/fault"
+	"github.com/bitfield/script"
 	"github.com/lmika/day-one-to-hugo/models"
 	"io"
 	"os"
@@ -20,17 +21,18 @@ func New() *Provider {
 }
 
 func (p *Provider) AddPhoto(site models.Site, media models.Media) error {
-	bts, err := os.ReadFile(media.Filename)
-	if err != nil {
-		return fault.Wrap(err)
-	}
-	
+	//bts, err := os.ReadFile(media.Filename)
+	//if err != nil {
+	//	return fault.Wrap(err)
+	//}
+
 	targetFilename := filepath.Join(site.Dir, "static", "images", filepath.Base(media.Filename))
 	if err := p.prepareBaseDir(targetFilename); err != nil {
 		return fault.Wrap(err)
 	}
 
-	return os.WriteFile(targetFilename, bts, 0644)
+	_, err := script.Exec(fmt.Sprintf("magick '%v' -strip '%v'", media.Filename, targetFilename)).Stdout()
+	return fault.Wrap(err)
 }
 
 func (p *Provider) AddPost(site models.Site, post models.Post) error {
@@ -74,7 +76,7 @@ func (p *Provider) postFilename(post models.Post) string {
 		wordComponent = scanNWords(post.Content, 3)
 	}
 
-	return fmt.Sprintf("%d-%02d-%02d-%v.md", post.Date.Year(), int(post.Date.Month()), post.Date.Day(), wordComponent)
+	return fmt.Sprintf("%d/%02d/%d/%v.md", post.Date.Year(), int(post.Date.Month()), post.Date.Day(), wordComponent)
 }
 
 func scanNWords(s string, words int) string {

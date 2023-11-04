@@ -12,8 +12,8 @@ func main() {
 	de := providers.DirExport("/Users/leonmika/Documents/10-31-2023_9-13-pm")
 
 	site := models.Site{
-		Dir:         "/Users/leonmika/tmp/test-journal-export",
-		PostBaseDir: "post",
+		Dir:         "/Users/leonmika/tmp/untraveller-web-v2",
+		PostBaseDir: "posts",
 	}
 
 	journalPack, err := de.LoadJournalPack()
