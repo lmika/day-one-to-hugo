@@ -6,6 +6,7 @@ import (
 	"github.com/bitfield/script"
 	"github.com/lmika/day-one-to-hugo/models"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,16 +22,12 @@ func New() *Provider {
 }
 
 func (p *Provider) AddPhoto(site models.Site, media models.Media) error {
-	//bts, err := os.ReadFile(media.Filename)
-	//if err != nil {
-	//	return fault.Wrap(err)
-	//}
-
 	targetFilename := filepath.Join(site.Dir, "static", "images", filepath.Base(media.Filename))
 	if err := p.prepareBaseDir(targetFilename); err != nil {
 		return fault.Wrap(err)
 	}
 
+	log.Println("Writing file: ", targetFilename)
 	_, err := script.Exec(fmt.Sprintf("magick '%v' -strip '%v'", media.Filename, targetFilename)).Stdout()
 	return fault.Wrap(err)
 }
@@ -61,7 +58,6 @@ func (p *Provider) generatePostBody(w io.Writer, post models.Post) error {
 	if post.Title != "" {
 		fmt.Fprintf(w, "title: %v\n", post.Title)
 	}
-	fmt.Fprintln(w, "trip: ra-v-missions")
 	fmt.Fprintln(w, "location:")
 	fmt.Fprintf(w, "  placeName: %v\n", post.Location.PlaceName)
 	fmt.Fprintf(w, "  locality: %v\n", post.Location.Locality)

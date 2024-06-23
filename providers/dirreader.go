@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 )
 
-type DirExport string
+type JournalPackExport string
 
-func (de DirExport) LoadJournalPack() (models.JournalPack, error) {
+func (de JournalPackExport) LoadJournalPack() (models.JournalPack, error) {
 	journal, err := de.LoadJournal()
 	if err != nil {
 		return models.JournalPack{}, fault.Wrap(err)
@@ -28,8 +28,8 @@ func (de DirExport) LoadJournalPack() (models.JournalPack, error) {
 	}, nil
 }
 
-func (de DirExport) LoadJournal() (j models.Journal, err error) {
-	bts, err := os.ReadFile(filepath.Join(string(de), "Journal.json"))
+func (de JournalPackExport) LoadJournal() (j models.Journal, err error) {
+	bts, err := os.ReadFile(string(de))
 	if err != nil {
 		return models.Journal{}, err
 	}
@@ -41,8 +41,8 @@ func (de DirExport) LoadJournal() (j models.Journal, err error) {
 	return j, nil
 }
 
-func (de DirExport) LoadPhotos() ([]models.Media, error) {
-	photoDir := filepath.Join(string(de), "photos")
+func (de JournalPackExport) LoadPhotos() ([]models.Media, error) {
+	photoDir := filepath.Join(filepath.Dir(string(de)), "photos")
 	media := make([]models.Media, 0)
 
 	if err := filepath.Walk(photoDir, func(path string, info fs.FileInfo, err error) error {

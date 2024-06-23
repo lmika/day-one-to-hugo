@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/lmika/day-one-to-hugo/models"
 	"github.com/lmika/day-one-to-hugo/providers"
 	"github.com/lmika/day-one-to-hugo/providers/hugodir"
@@ -9,11 +10,20 @@ import (
 )
 
 func main() {
-	de := providers.DirExport("/Users/leonmika/Documents/11-04-2023_9-44-pm")
+	flagTargetDir := flag.String("d", "out", "target site dir")
+	flagPostsDir := flag.String("posts", "posts", "target post dir relative to site")
+	flagTitle := flag.Bool("title", false, "force posts to have a title")
+	flag.Parse()
+
+	if flag.NArg() == 0 {
+		log.Fatal("require journal JSON file")
+	}
+
+	de := providers.JournalPackExport(flag.Arg(0))
 
 	site := models.Site{
-		Dir:         "/Users/leonmika/Developer/Websites/untraveller-web-v2",
-		PostBaseDir: "posts",
+		Dir:         *flagTargetDir,
+		PostBaseDir: *flagPostsDir,
 	}
 
 	journalPack, err := de.LoadJournalPack()
@@ -21,7 +31,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	svc := converter.New(hugodir.New())
+	svc := converter.New(hugodir.New(), *flagTitle)
 	if err := svc.WriteToHugo(site, journalPack); err != nil {
 		log.Fatal(err)
 	}

@@ -28,6 +28,10 @@ func (s *Service) ConvertToPost(entry models.Entry) (post models.Post, err error
 		n.RemoveChild(n, docHead)
 	}
 
+	if s.incTitle && post.Title == "" {
+		post.Title = entry.Date.Format("Jan 02, 2006")
+	}
+
 	if err := ast.Walk(n, s.imageURLWalker(entry)); err != nil {
 		return models.Post{}, err
 	}
