@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Site struct {
 	Dir         string
@@ -18,6 +20,19 @@ type Post struct {
 	Content  string
 	Location Location
 	Weather  Weather
+	Moments  []Moment
+}
+
+type Posts []Post
+
+func (p Posts) InterestedMoments() map[string]Moment {
+	moments := make(map[string]Moment)
+	for _, post := range p {
+		for _, m := range post.Moments {
+			moments[m.BaseName()] = m
+		}
+	}
+	return moments
 }
 
 type Media struct {

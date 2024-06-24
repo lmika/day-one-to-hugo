@@ -22,17 +22,22 @@ func (s *Service) ConvertToPost(entry models.Entry) (post models.Post, err error
 
 	n := mdParser.Parse(text.NewReader(textSrc))
 
-	docHead := n.FirstChild()
-	if docHead.Kind() == ast.KindHeading {
-		post.Title = string(docHead.Text(textSrc))
-		n.RemoveChild(n, docHead)
+	// TODO: make this a processor
+	if s.convertOptions.UseFirstHeadingAsTitle {
+		docHead := n.FirstChild()
+		if docHead.Kind() == ast.KindHeading {
+			post.Title = string(docHead.Text(textSrc))
+			n.RemoveChild(n, docHead)
+		}
 	}
 
-	if s.incTitle && post.Title == "" {
+	// TODO: make this a processor
+	if s.convertOptions.SetMissingTitlesToDate && post.Title == "" {
 		post.Title = entry.Date.Format("Jan 02, 2006")
 	}
 
-	if err := ast.Walk(n, s.imageURLWalker(entry)); err != nil {
+	foundMoments := make([]models.Moment, 0)
+	if err := ast.Walk(n, s.imageURLWalker(entry, &foundMoments)); err != nil {
 		return models.Post{}, err
 	}
 
@@ -41,10 +46,17 @@ func (s *Service) ConvertToPost(entry models.Entry) (post models.Post, err error
 	if err := mdRenderer.Render(&outBfr, textSrc, n); err != nil {
 		return models.Post{}, err
 	}
-	post.Content = s.figureMaker(outBfr.String())
+	post.Content = outBfr.String()
+
+	// TODO: make this a processor
+	if s.convertOptions.ConvertStarsToFigureCaptions {
+		post.Content = s.figureMaker(post.Content)
+	}
+
 	post.Date = entry.Date
 	post.Location = entry.Location
 	post.Weather = entry.Weather
+	post.Moments = foundMoments
 
 	return post, nil
 }
@@ -121,7 +133,7 @@ func (s *Service) figureMaker(md string) string {
 	return bts.String()
 }
 
-func (s *Service) imageURLWalker(entry models.Entry) ast.Walker {
+func (s *Service) imageURLWalker(entry models.Entry, foundMoments *[]models.Moment) ast.Walker {
 	const dayOnePrefix = "dayone-moment://"
 
 	return func(n ast.Node, entering bool) (ast.WalkStatus, error) {
@@ -146,6 +158,7 @@ func (s *Service) imageURLWalker(entry models.Entry) ast.Walker {
 		}
 
 		imgNode.Destination = []byte(fmt.Sprintf("/images/%v.%v", photo.MD5, photo.Type))
+		*foundMoments = append(*foundMoments, photo)
 
 		return ast.WalkContinue, nil
 	}

@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type JournalPack struct {
 	Journal Journal
@@ -38,4 +41,8 @@ type Moment struct {
 	MD5    string `json:"md5"`
 	Width  int    `json:"width"`
 	Height int    `json:"height"`
+}
+
+func (m Moment) BaseName() string {
+	return fmt.Sprintf("%v.%v", m.MD5, m.Type)
 }

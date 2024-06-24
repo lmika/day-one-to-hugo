@@ -5,6 +5,7 @@ import (
 	"github.com/Southclaws/fault"
 	"github.com/bitfield/script"
 	"github.com/lmika/day-one-to-hugo/models"
+	"gopkg.in/yaml.v3"
 	"io"
 	"log"
 	"os"
@@ -53,20 +54,31 @@ func (p *Provider) prepareBaseDir(filename string) error {
 }
 
 func (p *Provider) generatePostBody(w io.Writer, post models.Post) error {
-	fmt.Fprintln(w, "---")
-	fmt.Fprintf(w, "date: %v\n", post.Date.Format(time.RFC3339))
-	if post.Title != "" {
-		fmt.Fprintf(w, "title: %v\n", post.Title)
+	frontMatter := map[string]any{
+		"date": post.Date.Format(time.RFC3339),
+		"location": map[string]any{
+			"placeName": post.Location.PlaceName,
+			"locality":  post.Location.Locality,
+			"country":   post.Location.Country,
+			"lat":       post.Location.Lat,
+			"long":      post.Location.Long,
+		},
+		"weather": map[string]any{
+			"code": post.Weather.Code,
+			"temp": post.Weather.Temp,
+		},
 	}
-	fmt.Fprintln(w, "location:")
-	fmt.Fprintf(w, "  placeName: %v\n", post.Location.PlaceName)
-	fmt.Fprintf(w, "  locality: %v\n", post.Location.Locality)
-	fmt.Fprintf(w, "  country: %v\n", post.Location.Country)
-	fmt.Fprintf(w, "  lat: %v\n", post.Location.Lat)
-	fmt.Fprintf(w, "  long: %v\n", post.Location.Long)
-	fmt.Fprintln(w, "weather:")
-	fmt.Fprintf(w, "  code: %v\n", post.Weather.Code)
-	fmt.Fprintf(w, "  temp: %v\n", post.Weather.Temp)
+	if post.Title != "" {
+		frontMatter["title"] = post.Title
+	}
+
+	fmStr, err := yaml.Marshal(frontMatter)
+	if err != nil {
+		return fault.Wrap(err)
+	}
+
+	fmt.Fprintln(w, "---")
+	fmt.Fprint(w, string(fmStr))
 	fmt.Fprintln(w, "---")
 
 	fmt.Fprint(w, post.Content)

@@ -9,7 +9,7 @@ require (
 	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/itchyny/gojq v0.12.12 // indirect
 	github.com/itchyny/timefmt-go v0.1.5 // indirect
-	github.com/lmika/gopkgs v0.0.0-20231103235003-fdc93f8f5908 // indirect
+	github.com/lmika/gopkgs v0.0.0-20240408110817-a02f6fc67d1f // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect

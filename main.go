@@ -10,10 +10,13 @@ import (
 )
 
 func main() {
-	flagTargetDir := flag.String("d", "out", "target site dir")
+	flagTargetDir := flag.String("site", "out", "site dir")
 	flagPostsDir := flag.String("posts", "posts", "target post dir relative to site")
-	flagTitle := flag.Bool("title", false, "force posts to have a title")
 	flag.Parse()
+
+	convertOptions := converter.DefaultConvertOptions
+	convertOptions.UseFirstHeadingAsTitle = false
+	convertOptions.ConvertStarsToFigureCaptions = false
 
 	if flag.NArg() == 0 {
 		log.Fatal("require journal JSON file")
@@ -31,7 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	svc := converter.New(hugodir.New(), *flagTitle)
+	svc := converter.New(hugodir.New(), convertOptions)
 	if err := svc.WriteToHugo(site, journalPack); err != nil {
 		log.Fatal(err)
 	}
