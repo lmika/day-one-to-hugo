@@ -3,8 +3,8 @@ package hugodir
 import (
 	"fmt"
 	"github.com/Southclaws/fault"
-	"github.com/bitfield/script"
 	"github.com/lmika/day-one-to-hugo/models"
+	exifremove "github.com/neurosnap/go-exif-remove"
 	"gopkg.in/yaml.v3"
 	"io"
 	"log"
@@ -16,21 +16,51 @@ import (
 )
 
 type Provider struct {
+	StripExifData bool
 }
 
-func New() *Provider {
-	return &Provider{}
+func New(stripExifData bool) *Provider {
+	return &Provider{
+		stripExifData,
+	}
 }
 
-func (p *Provider) AddPhoto(site models.Site, media models.Media) error {
-	targetFilename := filepath.Join(site.Dir, "static", "images", filepath.Base(media.Filename))
+func (p *Provider) AddPhoto(site models.Site, media models.Media, moment models.Moment) error {
+	subDir := "images"
+	if moment.Video {
+		subDir = "videos"
+	}
+
+	targetFilename := filepath.Join(site.Dir, "static", subDir, filepath.Base(media.Filename))
 	if err := p.prepareBaseDir(targetFilename); err != nil {
 		return fault.Wrap(err)
 	}
 
-	log.Println("Writing file: ", targetFilename)
-	_, err := script.Exec(fmt.Sprintf("magick '%v' -strip '%v'", media.Filename, targetFilename)).Stdout()
-	return fault.Wrap(err)
+	if !p.StripExifData {
+		return p.quickCopy(targetFilename, media)
+	} else if !moment.CanStripExif() {
+		log.Printf("warn: cannot remove exif from %s. Writing out unmodified", targetFilename)
+		return p.quickCopy(targetFilename, media)
+	}
+
+	imgIn, err := os.ReadFile(media.Filename)
+	if err != nil {
+		return fault.Wrap(err)
+	}
+
+	imgOut, err := exifremove.Remove(imgIn)
+	if err != nil {
+		return fault.Wrap(err)
+	} else if len(imgOut) == 0 {
+		log.Printf("warn: cannot remove exif from %s. Writing out unmodified", targetFilename)
+		imgOut = imgIn
+	}
+
+	if err := os.WriteFile(targetFilename, imgOut, 0644); err != nil {
+		return fault.Wrap(err)
+	}
+
+	return nil
 }
 
 func (p *Provider) AddPost(site models.Site, post models.Post) error {
@@ -70,6 +100,8 @@ func (p *Provider) generatePostBody(w io.Writer, post models.Post) error {
 	}
 	if post.Title != "" {
 		frontMatter["title"] = post.Title
+	} else if post.BlankTitle != "" {
+		frontMatter["title"] = post.BlankTitle
 	}
 
 	fmStr, err := yaml.Marshal(frontMatter)
@@ -95,6 +127,26 @@ func (p *Provider) postFilename(post models.Post) string {
 	}
 
 	return fmt.Sprintf("%d/%02d/%d/%v.md", post.Date.Year(), int(post.Date.Month()), post.Date.Day(), wordComponent)
+}
+
+func (p *Provider) quickCopy(targetFilename string, media models.Media) error {
+	w, err := os.Create(targetFilename)
+	if err != nil {
+		return fault.Wrap(err)
+	}
+	defer w.Close()
+
+	r, err := os.Open(media.Filename)
+	if err != nil {
+		return fault.Wrap(err)
+	}
+	defer r.Close()
+
+	if _, err := io.Copy(w, r); err != nil {
+		return fault.Wrap(err)
+	}
+
+	return nil
 }
 
 func scanNWords(s string, words int) string {

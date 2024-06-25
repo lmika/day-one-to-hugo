@@ -22,9 +22,14 @@ func (de JournalPackExport) LoadJournalPack() (models.JournalPack, error) {
 		return models.JournalPack{}, fault.Wrap(err)
 	}
 
+	videos, err := de.LoadVideos()
+	if err != nil {
+		return models.JournalPack{}, fault.Wrap(err)
+	}
+
 	return models.JournalPack{
 		Journal: journal,
-		Photos:  photos,
+		Media:   append(append([]models.Media{}, photos...), videos...),
 	}, nil
 }
 
@@ -46,6 +51,24 @@ func (de JournalPackExport) LoadPhotos() ([]models.Media, error) {
 	media := make([]models.Media, 0)
 
 	if err := filepath.Walk(photoDir, func(path string, info fs.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+
+		media = append(media, models.Media{Filename: path})
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return media, nil
+}
+
+func (de JournalPackExport) LoadVideos() ([]models.Media, error) {
+	videoDir := filepath.Join(filepath.Dir(string(de)), "videos")
+	media := make([]models.Media, 0)
+
+	if err := filepath.Walk(videoDir, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}

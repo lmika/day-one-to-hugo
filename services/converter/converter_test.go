@@ -74,7 +74,7 @@ func TestService_WriteToHugo(t *testing.T) {
 				},
 			}
 
-			svc := converter.New(nil, false)
+			svc := converter.New(nil, converter.DefaultConvertOptions)
 			post, err := svc.ConvertToPost(entry)
 
 			assert.Nil(t, err)

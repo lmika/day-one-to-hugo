@@ -10,8 +10,14 @@ import (
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
 	"github.com/yuin/goldmark/text"
+	"net/url"
+	"path/filepath"
 	"regexp"
 	"strings"
+)
+
+const (
+	maxMissingTitleModeLength = 45
 )
 
 func (s *Service) ConvertToPost(entry models.Entry) (post models.Post, err error) {
@@ -32,8 +38,18 @@ func (s *Service) ConvertToPost(entry models.Entry) (post models.Post, err error
 	}
 
 	// TODO: make this a processor
-	if s.convertOptions.SetMissingTitlesToDate && post.Title == "" {
-		post.Title = entry.Date.Format("Jan 02, 2006")
+	if post.Title == "" {
+		switch s.convertOptions.MissingTitlesMode {
+		case MissingTitleModeDate:
+			post.BlankTitle = entry.Date.Format("Jan 02, 2006")
+		case MissingTitleModeFirstLine:
+			post.BlankTitle = strings.Split(strings.TrimSpace(entry.Text), "\n")[0]
+			if len(post.Title) > maxMissingTitleModeLength {
+				post.BlankTitle = post.BlankTitle[:maxMissingTitleModeLength]
+			}
+		default:
+			// leave blank
+		}
 	}
 
 	foundMoments := make([]models.Moment, 0)
@@ -47,6 +63,7 @@ func (s *Service) ConvertToPost(entry models.Entry) (post models.Post, err error
 		return models.Post{}, err
 	}
 	post.Content = outBfr.String()
+	post.Content = s.convertToVideo(post.Content)
 
 	// TODO: make this a processor
 	if s.convertOptions.ConvertStarsToFigureCaptions {
@@ -133,8 +150,50 @@ func (s *Service) figureMaker(md string) string {
 	return bts.String()
 }
 
+func (s *Service) convertToVideo(md string) string {
+	var (
+		imgLine = regexp.MustCompile(`^!\[]\((.*)\)`)
+	)
+
+	type pendingSeen struct {
+		imgURL string
+		mode   int
+	}
+
+	var bts bytes.Buffer
+	scnr := bufio.NewScanner(strings.NewReader(md))
+
+	for scnr.Scan() {
+		text := scnr.Text()
+		switch {
+		case imgLine.MatchString(text):
+			imgURL := imgLine.FindStringSubmatch(text)[1]
+			if strings.HasPrefix(imgURL, "/videos/") {
+				urlPart, queryPart, found := strings.Cut(imgURL, "?")
+				if found {
+					query, _ := url.ParseQuery(queryPart)
+					bts.WriteString(fmt.Sprintf(`<video src="%v" controls width="%v" height="%v"></video>`, urlPart,
+						query.Get("w"), query.Get("h")))
+					bts.WriteString("\n\n")
+				} else {
+					bts.WriteString(fmt.Sprintf(`<video src="%v" controls></video>`, imgURL))
+					bts.WriteString("\n\n")
+				}
+			} else {
+				bts.WriteString(text)
+				bts.WriteString("\n")
+			}
+		default:
+			bts.WriteString(text)
+			bts.WriteString("\n")
+		}
+	}
+
+	return bts.String()
+}
+
 func (s *Service) imageURLWalker(entry models.Entry, foundMoments *[]models.Moment) ast.Walker {
-	const dayOnePrefix = "dayone-moment://"
+	const dayOnePrefix = "dayone-moment:/"
 
 	return func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if n.Kind() != ast.KindImage {
@@ -148,17 +207,27 @@ func (s *Service) imageURLWalker(entry models.Entry, foundMoments *[]models.Mome
 			return ast.WalkContinue, nil
 		}
 
-		momentID := strings.TrimPrefix(dest, dayOnePrefix)
+		momentID := filepath.Base(strings.TrimPrefix(dest, dayOnePrefix))
 
-		photo, found := slices.FindWhere(entry.Photos, func(t models.Moment) bool {
-			return t.ID == momentID
-		})
-		if !found {
+		// Search for image
+		photo, found := slices.FindWhere(entry.Photos, func(t models.Moment) bool { return t.ID == momentID })
+		if found {
+			imgNode.Destination = []byte(fmt.Sprintf("/images/%v.%v", photo.MD5, photo.Type))
+			*foundMoments = append(*foundMoments, photo)
+
 			return ast.WalkContinue, nil
 		}
 
-		imgNode.Destination = []byte(fmt.Sprintf("/images/%v.%v", photo.MD5, photo.Type))
-		*foundMoments = append(*foundMoments, photo)
+		// Search for video
+		video, found := slices.FindWhere(entry.Videos, func(t models.Moment) bool { return t.ID == momentID })
+		if found {
+			// This is a bit of a hack, but I'd like to pass the width and height through to the video processor.
+			imgNode.Destination = []byte(fmt.Sprintf("/videos/%v.%v?w=%v&h=%v", video.MD5, video.Type, video.Width, video.Height))
+			video.Video = true
+			*foundMoments = append(*foundMoments, video)
+
+			return ast.WalkContinue, nil
+		}
 
 		return ast.WalkContinue, nil
 	}

@@ -15,12 +15,13 @@ type HugoContent struct {
 }
 
 type Post struct {
-	Date     time.Time
-	Title    string
-	Content  string
-	Location Location
-	Weather  Weather
-	Moments  []Moment
+	Date       time.Time
+	Title      string
+	BlankTitle string
+	Content    string
+	Location   Location
+	Weather    Weather
+	Moments    []Moment
 }
 
 type Posts []Post
