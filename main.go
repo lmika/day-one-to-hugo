@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	flagTargetDir := flag.StringP("site", "s", "out", "site dir")
+	flagTargetDir := flag.StringP("site", "d", "out", "site dir")
 	flagPostsDir := flag.String("posts", "posts", "target post dir relative to site")
 	flagFrom := flag.StringP("from", "f", "", "journal entries on and after this date")
 	flagTo := flag.StringP("to", "t", "", "journal entries up to, but not including, this date")
