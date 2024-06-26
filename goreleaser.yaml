@@ -1,5 +1,6 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 
+version: 2
 builds:
   - id: main
     targets:
@@ -47,6 +48,6 @@ brews:
     description: Converts Day One JSON exports to a Hugo site
     license: MIT
 checksum:
-  name_template: 'checksums-macos.txt'
+  name_template: 'checksums.txt'
 snapshot:
   name_template: "{{ .Tag }}-next"
