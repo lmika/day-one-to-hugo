@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
 builds:
   - id: main
     targets:
@@ -6,7 +8,7 @@ builds:
       - windows_amd64
       - linux_amd64
     env:
-      - CGO_ENABLED=1
+      - CGO_ENABLED=0
     main: .
     binary: day-one-to-hugo
 archives:
