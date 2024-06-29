@@ -12,6 +12,12 @@ import (
 	"time"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
 	flagTargetDir := flag.StringP("site", "d", "out", "site dir")
 	flagPostsDir := flag.String("posts", "posts", "target post dir relative to site")
@@ -23,6 +29,7 @@ func main() {
 	flag.Parse()
 
 	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Day One To Hugo, ver %v (%v), date %v\n\n", version, commit, date)
 		fmt.Fprintf(os.Stderr, "Usage\n")
 		fmt.Fprintf(os.Stderr, "  %s [OPTIONS] JSON ...\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "\nOptions:\n")
