@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/lmika/day-one-to-hugo/models"
 	"github.com/lmika/day-one-to-hugo/providers"
 	"github.com/lmika/day-one-to-hugo/providers/hugodir"
@@ -18,7 +19,20 @@ func main() {
 	flagTo := flag.StringP("to", "t", "", "journal entries up to, but not including, this date")
 	flagDryRun := flag.BoolP("dry-run", "n", false, "dry run")
 	flagKeepExif := flag.BoolP("keep-exif", "", false, "keep exif data on jpeg and png images")
+	flagHelp := flag.BoolP("help", "h", false, "show usage help")
 	flag.Parse()
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage\n")
+		fmt.Fprintf(os.Stderr, "  %s [OPTIONS] JSON ...\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "\nOptions:\n")
+		flag.PrintDefaults()
+	}
+
+	if *flagHelp {
+		flag.Usage()
+		os.Exit(0)
+	}
 
 	var selectOptions converter.SelectOption
 	if *flagFrom != "" {
@@ -48,7 +62,9 @@ func main() {
 	}
 
 	if flag.NArg() == 0 {
-		log.Fatal("require journal JSON file")
+		fmt.Fprintln(os.Stderr, "requires at least JSON file")
+		fmt.Fprintln(os.Stderr, "see --help for details")
+		os.Exit(1)
 	}
 
 	site := models.Site{

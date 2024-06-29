@@ -2,6 +2,36 @@
 
 A tool for converting posts from a Day One JSON export to posts for a Hugo site.
 
+## Installation
+
+### Linux
+
+For Linux, both RPM and DEB packages are available, plus regular `.tar.gz` files.
+After installing, the command should be installed at `/usr/local/bin/day-one-to-hugo`.
+
+### MacOS
+
+The recommended way to install on MacOS is using Homebrew. To install, run the following commands:
+
+```
+brew tap lmika/day-one-to-hugo
+brew install day-one-to-hugo
+```
+
+There's also a regular `.tar.gz` file available.
+
+### Windows
+
+Zips with the Windows binaries are available.
+
+### Go
+
+If you have Go, you can install day-one-to-hugo using this command:
+
+```
+go install github.com/lmika/day-one-to-hugo@latest
+```
+
 ## Basic Usage
 
 1. Make a JSON export from Day One.
