@@ -26,6 +26,7 @@ func main() {
 	flagDryRun := flag.BoolP("dry-run", "n", false, "dry run")
 	flagKeepExif := flag.BoolP("keep-exif", "", false, "keep exif data on jpeg and png images")
 	flagHelp := flag.BoolP("help", "h", false, "show usage help")
+	flagVersion := flag.BoolP("version", "", false, "show version information")
 	flag.Parse()
 
 	flag.Usage = func() {
@@ -38,6 +39,9 @@ func main() {
 
 	if *flagHelp {
 		flag.Usage()
+		os.Exit(0)
+	} else if *flagVersion {
+		fmt.Fprintf(os.Stderr, "Day One To Hugo, ver %v (%v), date %v\n", version, commit, date)
 		os.Exit(0)
 	}
 
